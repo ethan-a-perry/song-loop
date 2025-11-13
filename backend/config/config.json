@@ -1,0 +1,5 @@
+{
+	"client_id": "",
+	"redirect_uri": "http://127.0.0.1:8080/callback",
+	"scope": "user-read-private user-read-email user-read-playback-state user-modify-playback-state"
+}
