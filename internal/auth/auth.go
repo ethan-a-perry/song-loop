@@ -136,7 +136,7 @@ func RefreshToken(refreshToken string) error {
 }
 
 func LoadToken() (*Token, error) {
-	data, err := os.ReadFile("token.json")
+	data, err := os.ReadFile("internal/auth/token.json")
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read token file: %w", err)
@@ -157,7 +157,7 @@ func SaveToken(t *Token) error {
 		return fmt.Errorf("Failed to marshal token file to JSON: %w", err)
 	}
 
-	if err := os.WriteFile("token.json", data, 0600); err != nil {
+	if err := os.WriteFile("internal/auth/token.json", data, 0600); err != nil {
         return fmt.Errorf("Failed to write token file: %w", err)
     }
 
