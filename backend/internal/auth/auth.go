@@ -164,20 +164,20 @@ func SaveToken(t *Token) error {
     return nil
 }
 
-func Authenticate() (bool, error) {
+func Authenticate() (*Token, bool, error) {
 	t, err := LoadToken()
 
 	if err != nil {
-		return false, nil
+		return t, false, nil
 	}
 
 	if time.Now().After(t.ExpiresAt) {
 		err := RefreshToken(t.RefreshToken)
 
 		if err != nil {
-			return false, fmt.Errorf("Failed to refresh token: %w", err)
+			return t, false, fmt.Errorf("Failed to refresh token: %w", err)
 		}
 	}
 
-	return true, nil
+	return t, true, nil
 }

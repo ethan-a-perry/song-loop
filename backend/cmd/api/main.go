@@ -1,11 +1,40 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/ethan-a-perry/song-loop/internal/auth"
+	"github.com/ethan-a-perry/song-loop/internal/spotify"
 )
+
+var token *auth.Token
+
+func loopHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	req := struct {
+		Start int `json:"start"`
+		End int `json:"end"`
+	}{}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON (request body)", http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"status": "ok",
+	})
+
+	spotify.Loop(req.Start, req.End, token.AccessToken)
+}
 
 func callbackHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.URL.Query().Get("error")
@@ -28,14 +57,16 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	authorized, err := auth.Authenticate()
+	t, authorized, err := auth.Authenticate()
 
 	if err != nil {
+		fmt.Print("Error: ", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
 	if authorized {
+		token = t
 		return
 	}
 
@@ -56,6 +87,7 @@ func main() {
 
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/callback", callbackHandler)
+	http.HandleFunc("/loop", loopHandler)
 
 	fmt.Println("Server running at http://127.0.0.1:8080")
 	http.ListenAndServe(":8080", nil)
