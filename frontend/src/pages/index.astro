@@ -1,1 +1,28 @@
-<h1>Welcome</h1>
+---
+import Base from '../layouts/Base.astro'
+
+const title = "";
+const description = "Loop your favorite section of a song on Spotify";
+---
+
+<Base title={title} description={description}>
+	<form id="song-loop-form">
+		<div class="form-group">
+			<label for="start">Start</label>
+			<input type="number" id="start" name="start" required>
+		</div>
+
+		<div class="form-group">
+			<label for="end">End</label>
+			<input type="number" id="end" name="end" required>
+		</div>
+
+		<div class="form-group">
+			<button>Submit</button>
+		</div>
+	</form>
+
+	<div id="form-status"></div>
+</Base>
+
+<script src="../assets/js/song-loop.js"></script>
