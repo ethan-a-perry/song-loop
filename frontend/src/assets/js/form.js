@@ -2,7 +2,6 @@ const form = document.getElementById('login-form');
 const statusMessage = document.getElementById('form-status');
 
 form.addEventListener('submit', async (e) => {
-	console.log('trying to sign in')
 	e.preventDefault();
 
 	statusMessage.textContent = "Sending...";
@@ -14,7 +13,7 @@ form.addEventListener('submit', async (e) => {
 			method: "POST",
 			body: JSON.stringify({
 				email: formData.get('email'),
-				callbackURL: window.location.origin + "/dashboard",
+				callbackURL: window.location.origin + "/",
 			}),
       headers: {
       	"Content-Type": "application/json"
