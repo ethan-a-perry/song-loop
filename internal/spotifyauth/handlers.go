@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/ethan-a-perry/song-loop/internal/auth"
 )
 
 type handler struct {

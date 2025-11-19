@@ -10,9 +10,6 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	"github.com/ethan-a-perry/song-loop/internal/database/data"
-	"github.com/ethan-a-perry/song-loop/internal/database/models"
 )
 
 type Service interface {

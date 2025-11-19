@@ -4,14 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ethan-a-perry/song-loop/internal/database/data"
-	"github.com/ethan-a-perry/song-loop/internal/database/dataaccess"
 	"github.com/ethan-a-perry/song-loop/internal/spotifyauth"
 )
 
 type api struct {
 	config config
-	db *dataaccess.MongoDataAccess
 }
 
 type config struct {
@@ -21,10 +18,8 @@ type config struct {
 func (a *api) mount() http.Handler {
 	router := http.NewServeMux()
 
-	userData := data.NewUserData(a.db.UserCollection)
-
 	// Spotify Auth
-	spotifyAuthService := spotifyauth.NewService(userData)
+	spotifyAuthService := spotifyauth.NewService()
 	spotifyAuthHandler := spotifyauth.NewHandler(spotifyAuthService)
 
 	router.HandleFunc("/api/spotify/connect", spotifyAuthHandler.Connect)

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ethan-a-perry/song-loop/internal/database/dataaccess"
 	"github.com/joho/godotenv"
 )
 
@@ -16,20 +15,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Mongo
-	db, err := dataaccess.NewMongoDataAccess()
-	if err != nil {
-		fmt.Println("could not get db")
-		fmt.Println(err)
-	}
-
-	defer func() {
-		// Disconnect mongo client
-		if err := db.Client.Disconnect(context.TODO()); err != nil {
-			panic(err)
-		}
-	}()
-
 	// Configure API
 	cfg := config {
 		addr: ":8080",
@@ -37,7 +22,6 @@ func main() {
 
 	api := api {
 		config: cfg,
-		db: db,
 	}
 
 	router := api.mount()

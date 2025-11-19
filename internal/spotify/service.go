@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
-	"github.com/ethan-a-perry/song-loop/internal/database/data"
 )
 
 type Service interface {
