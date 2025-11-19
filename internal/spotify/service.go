@@ -22,12 +22,13 @@ func NewService(userData *data.UserData) Service {
 	}
 }
 
-func (s *svc) Loop(start, end int) {
-	token, err := s.userData.GetSpotifyToken()
-	if err != nil {
-		fmt.Print("error: ", err)
-		return
-	}
+func (s *svc) Loop(userID string, start, end int) {
+	// TODO: Authenticate spotify token
+	// token, err := s.spotifyAuth.Authenticate(userID)
+	// if err != nil {
+	// 	fmt.Print("error: ", err)
+	// 	return
+	// }
 
 	go func() {
 		for {

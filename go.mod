@@ -3,6 +3,7 @@ module github.com/ethan-a-perry/song-loop
 go 1.24.5
 
 require (
+	github.com/joho/godotenv v1.5.1
 	github.com/lestrrat-go/jwx/v3 v3.0.12
 	go.mongodb.org/mongo-driver/v2 v2.4.0
 )

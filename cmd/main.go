@@ -6,13 +6,21 @@ import (
 	"os"
 
 	"github.com/ethan-a-perry/song-loop/internal/database/dataaccess"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// ENV file
+	if err := godotenv.Load(); err != nil {
+		fmt.Println("Error loading .env file")
+		os.Exit(1)
+	}
+
 	// Mongo
 	db, err := dataaccess.NewMongoDataAccess()
 	if err != nil {
 		fmt.Println("could not get db")
+		fmt.Println(err)
 	}
 
 	defer func() {

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -16,9 +17,14 @@ func NewHandler(service Service) *handler {
 }
 
 func (h *handler) GetUserFromRequest(w http.ResponseWriter, r *http.Request) {
-	userId := GetContextValue(r, "user_id")
+	fmt.Println("GetUserFromRequest received")
+	userID, ok := GetUserID(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 
-	user, err := h.service.GetUserFromRequest(userId)
+	user, err := h.service.GetUserFromRequest(userID)
 
 	if err == nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -27,9 +33,13 @@ func (h *handler) GetUserFromRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	email := GetContextValue(r, "email")
+	email, ok := GetUserEmail(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 
-	user, err = h.service.CreateUserFromRequest(userId, email)
+	user, err = h.service.CreateUserFromRequest(userID, email)
 	if err == nil {
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(user)

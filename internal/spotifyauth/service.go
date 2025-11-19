@@ -7,97 +7,54 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
-	"github.com/ethan-a-perry/song-loop/config"
 	"github.com/ethan-a-perry/song-loop/internal/database/data"
-	"github.com/ethan-a-perry/song-loop/internal/utils"
+	"github.com/ethan-a-perry/song-loop/internal/database/models"
 )
 
 type Service interface {
-	Authenticate() (*Token, bool, error)
-	EstablishToken(code string) error
-	GetAuthorizationUrl() (string, error)
+	GetAuthorizationUrl(state string) (string, error)
+	EstablishToken(userID, code string) error
+	Authenticate(userID string) (*models.SpotifyToken, error)
 }
 
 type svc struct {
 	userData *data.UserData
 }
 
-var (
-	session *config.Config
-	codeVerifier string
-)
-
-type Token struct {
-	AccessToken string
-	TokenType string
-	Scope string
-	ExpiresAt time.Time
-	RefreshToken string
-}
+var codeVerifier string
 
 func NewService(userData *data.UserData) Service {
-	var err error
-	session, err = config.LoadConfig()
-
-	if err != nil {
-		fmt.Errorf("Failed to load config: %w", err)
-	}
-
 	return &svc {
 		userData: userData,
 	}
 }
 
-func (s *svc) GetAuthorizationUrl() (string, error) {
+func (s *svc) GetAuthorizationUrl(state string) (string, error) {
 	var err error
-	codeVerifier, err = utils.GenerateCodeVerifier(64)
+	codeVerifier, err = GenerateCodeVerifier(64)
 	if err != nil {
 		return "", errors.New("Could not generate code verifier")
 	}
 
-	codeChallenge := utils.GenerateCodeChallenge(codeVerifier)
-
-	state, err := utils.GenerateCodeVerifier(64)
-	if err != nil {
-		return "", errors.New("Could not generate state")
-	}
+	codeChallenge := GenerateCodeChallenge(codeVerifier)
 
 	v := url.Values{}
-	v.Set("client_id", session.ClientID)
+	v.Set("client_id", os.Getenv("CLIENT_ID"))
 	v.Set("response_type", "code")
-	v.Set("redirect_uri", session.RedirectURI)
+	v.Set("redirect_uri", os.Getenv("REDIRECT_URI"))
 	v.Set("state", state)
-	v.Set("scope", session.Scope)
+	v.Set("scope", os.Getenv("SCOPE"))
 	v.Set("code_challenge_method", "S256")
 	v.Set("code_challenge", codeChallenge)
 
 	return fmt.Sprintf("https://accounts.spotify.com/authorize?%s", v.Encode()), nil
 }
 
-func (s *svc) EstablishToken(code string) error {
-	data := url.Values{}
-	data.Set("grant_type", "authorization_code")
-	data.Set("code", code)
-	data.Set("redirect_uri", session.RedirectURI)
-	data.Set("client_id", session.ClientID)
-	data.Set("code_verifier", codeVerifier)
-
-	return s.GetToken(data)
-}
-
-func (s *svc) RefreshToken(refreshToken string) error {
-	data := url.Values{}
-	data.Set("grant_type", "refresh_token")
-	data.Set("refresh_token", refreshToken)
-	data.Set("client_id", session.ClientID)
-
-	return s.GetToken(data)
-}
-
-func (s *svc) GetToken(data url.Values) error {
+func (s *svc) GetToken(userID string, data url.Values) error {
 	req, err := http.NewRequest(http.MethodPost, "https://accounts.spotify.com/api/token", strings.NewReader(data.Encode()))
 
 	if err != nil {
@@ -133,7 +90,7 @@ func (s *svc) GetToken(data url.Values) error {
 		return fmt.Errorf("failed to decode token response: %v", err)
 	}
 
-	token := Token{
+	token := models.SpotifyToken{
 		AccessToken: tr.AccessToken,
 		TokenType: tr.TokenType,
 		Scope: tr.Scope,
@@ -141,45 +98,73 @@ func (s *svc) GetToken(data url.Values) error {
 		RefreshToken: tr.RefreshToken,
 	}
 
-	if err := s.SaveToken(&token); err != nil {
+	if err := s.SaveToken(userID, &token); err != nil {
         return fmt.Errorf("Failed to save token: %w", err)
     }
+
+    fmt.Println(token)
 
 	return nil
 }
 
-func (s *svc) LoadToken() (*Token, error) {
-	token, err := s.userData.GetSpotifyToken()
+func (s *svc) EstablishToken(userID, code string) error {
+	data := url.Values{}
+	data.Set("grant_type", "authorization_code")
+	data.Set("code", code)
+	data.Set("redirect_uri", os.Getenv("REDIRECT_URI"))
+	data.Set("client_id", os.Getenv("CLIENT_ID"))
+	data.Set("code_verifier", codeVerifier)
 
-	if err != nil {
-		return nil, fmt.Errorf("Failed to get spotify token from database: %w", err)
-	}
-
-	return &token, nil
+	return s.GetToken(userID, data)
 }
 
-func (s *svc) SaveToken(t *Token) error {
-	if err := s.userData.UpdateSpotifyToken(&t); err != nil {
+func (s *svc) RefreshToken(userID string, refreshToken string) error {
+	data := url.Values{}
+	data.Set("grant_type", "refresh_token")
+	data.Set("refresh_token", refreshToken)
+	data.Set("client_id", os.Getenv("CLIENT_ID"))
+
+	return s.GetToken(userID, data)
+}
+
+func (s *svc) SaveToken(userID string, token *models.SpotifyToken) error {
+	if err := s.userData.UpdateSpotifyToken(userID, token); err != nil {
         return fmt.Errorf("Failed to save token: %w", err)
     }
 
     return nil
 }
 
-func (s *svc) Authenticate() (*Token, bool, error) {
-	t, err := s.LoadToken()
-
+func (s *svc) LoadToken(userID string) (*models.SpotifyToken, error) {
+	user, err := s.userData.GetUserById(userID)
 	if err != nil {
-		return t, false, nil
+		return &models.SpotifyToken{}, fmt.Errorf("Could not find user by the id in database: %w", err)
 	}
 
-	if time.Now().After(t.ExpiresAt) {
-		err := s.RefreshToken(t.RefreshToken)
+	if user.SpotifyToken == (models.SpotifyToken{}) {
+		return &models.SpotifyToken{}, fmt.Errorf("spotify token is missing: %w", err)
+	}
 
+	return &user.SpotifyToken, nil
+}
+
+func (s *svc) Authenticate(userID string) (*models.SpotifyToken, error) {
+	token, err := s.LoadToken(userID)
+	if err != nil {
+		return &models.SpotifyToken{}, fmt.Errorf("failed to find spotify token for user: %w", err)
+	}
+
+	if time.Now().After(token.ExpiresAt) {
+		err := s.RefreshToken(userID, token.RefreshToken)
 		if err != nil {
-			return t, false, fmt.Errorf("Failed to refresh token: %w", err)
+			return &models.SpotifyToken{}, fmt.Errorf("Failed to refresh expired token: %w", err)
+		}
+
+		token, err = s.LoadToken(userID)
+		if err != nil {
+			return &models.SpotifyToken{}, fmt.Errorf("failed to find spotify token for user: %w", err)
 		}
 	}
 
-	return t, true, nil
+	return token, nil
 }

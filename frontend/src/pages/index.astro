@@ -1,12 +1,36 @@
 ---
 import Base from '../layouts/Base.astro'
+import { auth } from "../lib/auth"
+
+export const prerender = false;
+
+const session = await auth.api.getSession({
+  headers: Astro.request.headers
+})
+
+let user = {
+	id: "",
+	email: "",
+}
+
+if (session?.user) {
+  // User is logged in, fetch their data
+  const { token } = await auth.api.getToken({
+    headers: Astro.request.headers
+  })
+
+  // This triggers user creation if they don't exist
+  user = await fetch("http://localhost:8080/api/user", {
+  	headers: { "Authorization": `Bearer ${token}` }
+  }).then(r => r.json())
+}
 
 const title = "";
 const description = "Loop your favorite section of a song on Spotify";
 ---
 
 <Base title={title} description={description}>
-	<form id="song-loop-form">
+	<!-- <form id="song-loop-form">
 		<div class="form-group">
 			<label for="start">Start</label>
 			<input type="number" id="start" name="start" required>
@@ -22,7 +46,35 @@ const description = "Loop your favorite section of a song on Spotify";
 		</div>
 	</form>
 
+	<div id="form-status"></div> -->
+
+	<form id="login-form">
+		<div class="form-group">
+			<label for="email">Email</label>
+			<input type="text" id="email" name="email" required>
+		</div>
+
+		<div class="form-group">
+			<button>Submit</button>
+		</div>
+	</form>
+
 	<div id="form-status"></div>
+
+	<button id="logout-btn">Logout</button>
+
+	<button id="spotify-connect-btn">Connect</button>
+
+	<p>{user.email}</p>
 </Base>
 
 <script src="../assets/js/song-loop.js"></script>
+<script src="../assets/js/login.js"></script>
+<script src="../assets/js/logout.js"></script>
+
+<script>
+import { connectSpotify } from "../assets/js/spotify.js"
+
+const btn = document.getElementById('spotify-connect-btn')
+btn.addEventListener('click', () => connectSpotify())
+</script>
