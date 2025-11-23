@@ -7,6 +7,7 @@ import (
 	"github.com/ethan-a-perry/song-loop/internal/spotify"
 	"github.com/ethan-a-perry/song-loop/internal/spotifyauth"
 	"github.com/ethan-a-perry/song-loop/internal/store"
+	"github.com/ethan-a-perry/song-loop/internal/web"
 )
 
 type api struct {
@@ -14,6 +15,7 @@ type api struct {
 	store *store.Store
 	authService *spotifyauth.Service
     spotifyService *spotify.Service
+    webService *web.Service
 }
 
 type config struct {
@@ -32,6 +34,13 @@ func (a *api) mount() http.Handler {
 	spotifyHandler := spotify.NewHandler(a.spotifyService)
 	router.HandleFunc("POST /api/spotify/loop", spotifyHandler.Loop)
 	router.HandleFunc("/api/spotify/loop/stop", spotifyHandler.StopLoop)
+
+	// Static files
+	router.Handle("/web/static/", http.StripPrefix("/web/static/", http.FileServer(http.Dir("web/static"))))
+
+	// Web
+	webHandler := web.NewHandler(a.webService)
+	router.HandleFunc("/", webHandler.Index)
 
 	return router
 }

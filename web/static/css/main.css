@@ -1,0 +1,146 @@
+@layer reset, base, layout, components, utilities, pages;
+
+@import "reset.css" layer(reset);
+
+:root {
+	--temp: red;
+}
+
+@layer base {
+	body {
+		background-color: rgb(247, 247, 247);
+		padding-block: 8rem;
+	}
+}
+
+@layer layout {
+	@layer content-grid {
+        .content-grid {
+            --padding-inline: 1.5rem;
+            --content-max-width: 1200px;
+
+            container: content-grid / inline-size;
+
+            display: grid;
+            grid-template-columns:
+                [full-width-start] minmax(var(--padding-inline), 1fr)
+                [content-start] min(
+                    100% - (var(--padding-inline) * 2),
+                    var(--content-max-width)
+                ) [content-end]
+                minmax(var(--padding-inline), 1fr) [full-width-end];
+            /*row-gap: 8rem;*/
+        }
+
+        .content-grid > :not(.full-width),
+        .full-width > :not(.full-width) {
+            grid-column: content;
+        }
+
+        .content-grid > .full-width {
+            grid-column: full-width;
+
+            display: grid;
+            grid-template-columns: inherit;
+        }
+    }
+}
+
+.hero {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+
+	padding-block-end: 1rem;
+	border-bottom: 1px solid grey;
+}
+
+button {
+	color: white;
+	background-color: black;
+	padding: 10px 12px;
+	border-radius: 8px;
+	border: none;
+
+	cursor: pointer;
+
+	&:hover {
+		background-color: #333;
+	}
+}
+
+.flow-1 * + * {
+    margin-top: 1rem;
+}
+
+.margin-top-4 {
+	margin-top: 4rem;
+}
+
+.status {
+	display: flex;
+	align-items: center;
+	gap: 1ch;
+
+	padding: 1rem;
+	background-color: white;
+	border-radius: 8px;
+	color: var(--_status-color);
+
+	&::before {
+		content: "";
+		background-color: var(--_status-color);
+		border-radius: 50%;
+		aspect-ratio: 1;
+		width: 20px;
+	}
+
+	&.unauthorized, &.failed {
+		--_status-color: #d32f2f;
+	}
+
+	&.idle {
+		--_status-color: #1976d2;
+	}
+
+	&.playing {
+		--_status-color: purple;
+	}
+
+	&.looping {
+		--_status-color: #388e3c;
+	}
+}
+
+.dashboard {
+	display: flex;
+	gap: 2rem;
+
+	padding: 2rem;
+
+	border-radius: 12px;
+
+	background: white;
+
+	&.unauthorized {
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+	}
+}
+
+img {
+	max-width: 300px;
+}
+
+.info {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.refresh {
+	display: flex;
+	align-items: center;
+	fill: lightgray;
+}

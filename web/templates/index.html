@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title></title>
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/web/static/css/main.css">
+</head>
+<body class="content-grid">
+	<div class="hero">
+		<div class="flow-1">
+			<h1>Song Loop</h1>
+			<p>Loop your favorite section of any track on Spotify</p>
+		</div>
+
+		<span class="status {{ .Status }}">
+			{{ .StatusDescription }}
+			<a href="/" class="refresh">
+				<svg style="width: 24px; height: 24px;">
+            		<use href="../web/static/icons/icons.svg#restart-alt"></use>
+        		</svg>
+			</a>
+		</span>
+	</div>
+
+	<div class="dashboard margin-top-4 {{ .Status }}">
+		{{ if eq .Status "unauthorized" }}
+			{{ if ne .StatusMessage "" }}
+				<p>{{ .StatusMessage }}</p>
+			{{ end }}
+			<button id="connect">Connect to Spotify</button>
+		{{ end }}
+
+		{{ if eq .Status "idle" }}
+			<p>To view the dashboard, start playing a Spotify song on any of your devices and refresh the page.</p>
+		{{ end }}
+
+		{{ if .Playback }}
+			<img
+				src="{{ (index .Playback.Item.Album.Images 0).URL }}"
+				alt="{{ .Playback.Item.Album.Name }}"
+			/>
+
+			<div class="info">
+				<div>
+					<h2 class="song">{{ .Playback.Item.Name }}</h2>
+
+					<ul class="artists">
+						{{ range .Playback.Item.Artists }}
+							<li>{{ .Name }}</li>
+						{{ end }}
+					</ul>
+				</div>
+
+				<div>
+					<div id="form-status"></div>
+					<p>Set loop:</p>
+					<form id="loop-form">
+						<div class="form-group">
+							<label for="start">Start</label>
+							<input type="number" id="start" name="start" value="8000" required>
+						</div>
+
+						<div class="form-group">
+							<label for="end">End</label>
+							<input type="number" id="end" name="end" value="12000" required>
+						</div>
+
+						<div class="form-group grid-span">
+				            <button>Submit</button>
+				        </div>
+					</form>
+				</div>
+			</div>
+		{{ end }}
+	</div>
+
+	<script src="/web/static/js/loop.js"></script>
+	<script src="/web/static/js/connect.js"></script>
+</body>
+</html>
