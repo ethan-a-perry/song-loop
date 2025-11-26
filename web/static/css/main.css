@@ -17,10 +17,10 @@
 	    --color-text-20: hsl(0, 0%, 85%);
 	    --color-text-10: hsl(0, 0%, 93%);
 
-	    --color-blue: #1976d2;
-		--color-red: #d32f2f;
-		--color-purple: purple;
-		--color-green: #388e3c;
+	    --color-blue: hsl(210, 79%, 46%);
+		--color-red: hsl(0, 65%, 51%);
+		--color-purple: hsl(282, 68%, 38%);
+		--color-green: hsl(123, 43%, 39%);
 	}
 
 	body {
@@ -266,7 +266,11 @@
 				width: 24px;
 				height: 24px;
 
-				fill: var(--_color-status, #000);
+				fill: var(--_color-status, hsl(0, 0%, 0%));
+
+				&:hover {
+					fill: hsl(from var(--_color-status) h s l / 0.80);
+				}
 			}
 		}
 
