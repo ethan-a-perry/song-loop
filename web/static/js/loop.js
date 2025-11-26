@@ -44,10 +44,10 @@ if (stopLoopBtn) {
 
 		if (res.ok) {
 			pageStatus.className = "status playing";
-			pageStatusDescription.textContent = "Apologies, something went wrong when stopping the loop.";
+			pageStatusDescription.textContent = "Playing";
 		}
 		else {
-			formStatus.textContent = "failure";
+			formStatus.textContent = "Apologies, something went wrong when stopping the loop.";
 		}
 	});
 }
@@ -62,6 +62,9 @@ const startDisplay = document.getElementById('start-display');
 const endDisplay = document.getElementById('end-display');
 
 if (startSlider && endSlider && startDisplay && endDisplay) {
+	setDisplay(startDisplay, parseInt(startSlider.value, 10));
+	setDisplay(endDisplay, parseInt(endSlider.value, 10));
+
 	startSlider.addEventListener('input', () => {
 		let start = parseInt(startSlider.value, 10);
 		const end = parseInt(endSlider.value, 10);

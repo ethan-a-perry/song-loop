@@ -16,6 +16,7 @@ type PlaybackState struct {
 	Item struct {
 		ID   string `json:"id"`
 		Name string `json:"name"`
+		DurationMS int `json:"duration_ms"`
 
 		Album struct {
 			Name string `json:"name"`

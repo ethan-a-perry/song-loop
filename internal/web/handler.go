@@ -11,7 +11,11 @@ type handler struct {
 }
 
 func NewHandler(service *Service) *handler {
-	tmpl := template.Must(template.ParseFiles("web/templates/index.html"))
+	funcMap := template.FuncMap{
+		"div": func(a, b int) int { return a / b },
+	}
+
+	tmpl := template.Must(template.New("index.html").Funcs(funcMap).ParseFiles("web/templates/index.html"))
 
 	return &handler{
 		service: service,

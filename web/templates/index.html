@@ -46,8 +46,8 @@
 						<div class="slider">
 							<span class="track"></span>
 							<span class="track-highlight"></span>
-							<input id="start-slider" type="range" name="start" value="5" min="0" max="100" step="1" />
-							<input id="end-slider" type="range" name="end" value="30" min="0" max="100" step="1" />
+							<input id="start-slider" type="range" name="start" value="{{ div .Playback.Item.DurationMS 10000 }}" min="0" max="{{ div .Playback.Item.DurationMS 1000 }}" step="1" />
+							<input id="end-slider" type="range" name="end" value="{{ div .Playback.Item.DurationMS 2000 }}" min="0" max="{{ div .Playback.Item.DurationMS 1000 }}" step="1" />
 						</div>
 						<span class="fs-s" id="end-display">00:30</span>
 					</div>
